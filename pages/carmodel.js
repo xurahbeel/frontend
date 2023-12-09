@@ -1,4 +1,3 @@
-import Image from 'next/image'
 import CarModel from '@/components/CarModel'
 export default function Home() {
     return (

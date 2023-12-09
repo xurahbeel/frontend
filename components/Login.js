@@ -20,7 +20,6 @@ export default function Login() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Validate form fields
         const newErrors = {};
         if (!email.trim()) {
             newErrors.email = 'Email is required';
@@ -34,13 +33,11 @@ export default function Login() {
             setErrors(newErrors);
             return;
         }
-
         const formData = { email, password };
 
-        console.log(formData);
 
         try {
-            const response = await fetch('http://192.168.100.145:8080/v1/user/sign-in', {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/v1/user/sign-in`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -50,7 +47,10 @@ export default function Login() {
 
             if (response.status === 200) {
                 alert('Login successful');
-                router.push('carmodel');
+                router.push({
+                    pathname: '/carmodel',
+                    query: { name: email } // Your prop and its value
+                });
             } else if (response.status === 401) {
                 alert('Login failed: Email or password is incorrect');
             } else {

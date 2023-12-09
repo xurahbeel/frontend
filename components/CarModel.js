@@ -1,22 +1,25 @@
-"use Client"
-// components/CarForm.js
+"use cient";
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import styles from '../styles/CarModel.module.css';
 
-export default function CarForm() {
+function CarForm() {
+
     const [carModel, setCarModel] = useState('');
     const [price, setPrice] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
     const [maxPictures, setMaxPictures] = useState(3);
     const [selectedImages, setSelectedImages] = useState([]);
     const [imagePreviews, setImagePreviews] = useState([]);
-    const [success, setSuccess] = useState(false);
+
+    const router = useRouter();
+    const { name } = router.query
 
 
     const handlePictureUpload = (e) => {
         const selectedFiles = Array.from(e.target.files);
 
-        if (selectedFiles.length > maxPictures) {
+        if (selectedImages.length >= maxPictures) {
             alert(`You can upload a maximum of ${maxPictures} images.`);
             return;
         }
@@ -49,13 +52,24 @@ export default function CarForm() {
         setMaxPictures(3);
         setSelectedImages([]);
         setImagePreviews([]);
-        setSuccess(false);
     };
 
+    useEffect(() => {
+        if (!name)
+            router.push('/')
+    }, [name])
 
     const handleAddCar = async () => {
         if (!carModel || !price || !phoneNumber) {
             alert('Please fill in all required fields.');
+            return;
+        }
+        if (phoneNumber.length !== 11) {
+            alert('Phone number must have 11 length');
+            return;
+        }
+        if (maxPictures <= 0) {
+            alert('Max pictures must not be 0');
             return;
         }
 
@@ -66,15 +80,14 @@ export default function CarForm() {
         formData.append('maxPictures', maxPictures);
         formData.append('gallery', selectedImages);
         try {
-            const response = await fetch('http://192.168.100.145:8080/v1/car/add', {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/v1/car/add`, {
                 method: 'POST',
                 body: formData,
             });
 
             if (response.ok) {
                 alert('Car added successfully');
-                setSuccess(true);
-                // resetForm();
+                resetForm();
             } else {
                 alert('Failed to add car');
             }
@@ -92,7 +105,7 @@ export default function CarForm() {
 
     return (
         <div className={styles.container}>
-            <h2>Add a Car</h2>
+            <h2>{name}</h2>
             <form className={styles.form}>
                 <div className={styles.formGroup}>
                     <label htmlFor="carModel">Car Model:</label>
@@ -146,11 +159,10 @@ export default function CarForm() {
                         id="pictureUpload"
                         accept="image/*"
                         onChange={handlePictureUpload}
-                        multiple // Allow multiple file selection
+                        multiple
                     />
-                    {/* Display image previews */}
                     <div className={styles.imagePreviews}>
-                        {imagePreviews.map((preview, index) => (
+                        {imagePreviews.length > 0 && imagePreviews?.map((preview, index) => (
                             <img
                                 key={index}
                                 src={preview}
@@ -158,6 +170,16 @@ export default function CarForm() {
                                 className={styles.imagePreview}
                             />
                         ))}
+                    </div>
+                    <div>
+                        <div onClick={() => {
+                            if (imagePreviews.length > 0) {
+                                const news = imagePreviews
+                                news.pop()
+                                setImagePreviews([...news]);
+                            }
+                        }}
+                            className={styles.deleteButton}>Delete</div>
                     </div>
                 </div>
                 <button type="button" onClick={handleAddCar} className={styles.addButton}>
@@ -167,3 +189,5 @@ export default function CarForm() {
         </div>
     );
 }
+
+export default CarForm;
